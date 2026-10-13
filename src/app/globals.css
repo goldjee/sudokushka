@@ -226,6 +226,18 @@ h2 {
     padding: 4px 14px;
 }
 
+/* Same box for both theme icons, so toggling doesn't shift the header */
+.icon {
+    display: block;
+    width: 26px;
+    height: 26px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
 .btn.digit {
     font-size: clamp(30px, calc(var(--board) / 15), 52px);
     min-height: clamp(56px, calc(var(--board) / 10), 84px);

@@ -1,5 +1,7 @@
-// Runs before first paint so a saved dark theme doesn't flash light.
+// Runs before first paint: saved choice, else the device theme. Game reads the result back.
 try {
     const theme = JSON.parse(localStorage.getItem('sudokushka:theme'));
-    if (theme) document.documentElement.dataset.theme = theme;
+    document.documentElement.dataset.theme =
+        theme ??
+        (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
 } catch {}

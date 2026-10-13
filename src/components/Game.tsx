@@ -43,7 +43,7 @@ export default function Game() {
             load<Lang>(KEY.lang) ??
                 (navigator.language.startsWith('ru') ? 'ru' : 'en'),
         );
-        setTheme(load<Theme>(KEY.theme) ?? 'light');
+        setTheme(document.documentElement.dataset.theme as Theme);
         setReady(true);
     }, []);
 
@@ -60,7 +60,6 @@ export default function Game() {
     useEffect(() => {
         if (!ready) return;
         document.documentElement.dataset.theme = theme;
-        save(KEY.theme, theme);
     }, [ready, theme]);
 
     useEffect(() => {
@@ -165,9 +164,12 @@ export default function Game() {
                 elapsed={game.elapsed}
                 theme={theme}
                 onToggleLang={() => setLang(lang === 'ru' ? 'en' : 'ru')}
-                onToggleTheme={() =>
-                    setTheme(theme === 'light' ? 'dark' : 'light')
-                }
+                onToggleTheme={() => {
+                    const next = theme === 'light' ? 'dark' : 'light';
+                    setTheme(next);
+                    // Saved only on an explicit choice, so untouched devices keep following the system.
+                    save(KEY.theme, next);
+                }}
                 onNewGame={() => setMenu(true)}
             />
             <Board
