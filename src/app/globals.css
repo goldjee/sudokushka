@@ -1,0 +1,337 @@
+:root,
+:root[data-theme="light"] {
+    --paper: #f6f1e3;
+    --squares: #dde4ec;
+    --ink: #2b2a27;
+    --pen: #2a4f9e;
+    --pencil: #6c6860;
+    --line: #b5ad9c;
+    --line-bold: #3a3935;
+    --area: rgba(250, 215, 110, 0.22);
+    --same: rgba(110, 150, 225, 0.22);
+    --sel: rgba(250, 200, 60, 0.5);
+    --bad: #b8382b;
+    --bad-bg: rgba(184, 56, 43, 0.13);
+    --btn: #fffcf3;
+    --shadow: rgba(0, 0, 0, 0.35);
+}
+
+/* Dark: medium contrast, warm grey "night paper" */
+:root[data-theme="dark"] {
+    --paper: #2b2c2f;
+    --squares: #34363a;
+    --ink: #d6d1c5;
+    --pen: #93b2e6;
+    --pencil: #9a968d;
+    --line: #55575c;
+    --line-bold: #a19d93;
+    --area: rgba(250, 210, 110, 0.07);
+    --same: rgba(120, 160, 230, 0.16);
+    --sel: rgba(250, 200, 80, 0.22);
+    --bad: #e07c70;
+    --bad-bg: rgba(224, 124, 112, 0.14);
+    --btn: #333438;
+    --shadow: rgba(0, 0, 0, 0.55);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    min-height: 100dvh;
+}
+
+body {
+    color: var(--ink);
+    background-color: var(--paper);
+    /* Squared exercise-book paper */
+    background-image:
+        linear-gradient(var(--squares) 1px, transparent 1px),
+        linear-gradient(90deg, var(--squares) 1px, transparent 1px);
+    background-size: 26px 26px;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+button {
+    font: inherit;
+    color: inherit;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    touch-action: manipulation; /* no double-tap zoom on iPad */
+}
+
+button:disabled {
+    cursor: default;
+    opacity: 0.35;
+}
+
+h1,
+h2 {
+    font-weight: normal;
+    margin: 0;
+}
+
+/* ---------- Layout: portrait / phone first ---------- */
+
+.app {
+    --board: min(100vw - 32px, 100dvh - 330px, 860px);
+    display: grid;
+    grid-template-columns: var(--board);
+    justify-content: center;
+    gap: 16px;
+    padding: 16px;
+    padding-top: max(16px, env(safe-area-inset-top));
+}
+
+.top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 16px;
+}
+
+.top h1 {
+    font-size: 34px;
+}
+
+.status {
+    display: flex;
+    gap: 12px;
+    align-items: baseline;
+    font-size: 26px;
+    color: var(--pencil);
+}
+
+.timer {
+    font-size: 32px;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+}
+
+.actions {
+    display: flex;
+    gap: 8px;
+    margin-left: auto;
+}
+
+.board {
+    width: var(--board);
+    aspect-ratio: 1;
+    container-type: inline-size;
+    display: grid;
+    grid-template-columns: repeat(9, 1fr);
+    grid-template-rows: repeat(9, 1fr);
+    border: 3px solid var(--line-bold);
+    background: var(--paper);
+}
+
+.cell {
+    position: relative;
+    display: grid;
+    place-items: center;
+    border-right: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    font-size: 8cqw;
+    line-height: 1;
+}
+
+.cell:nth-child(9n) {
+    border-right: none;
+}
+
+.cell:nth-child(n + 73) {
+    border-bottom: none;
+}
+
+.cell.br {
+    border-right: 3px solid var(--line-bold);
+}
+
+.cell.bb {
+    border-bottom: 3px solid var(--line-bold);
+}
+
+.cell.given {
+    color: var(--ink);
+}
+
+.cell.pen {
+    color: var(--pen);
+}
+
+.cell.area {
+    background: var(--area);
+}
+
+.cell.same {
+    background: var(--same);
+}
+
+.cell.sel {
+    background: var(--sel);
+}
+
+.cell.bad {
+    color: var(--bad);
+    background-image: linear-gradient(var(--bad-bg), var(--bad-bg));
+}
+
+.notes {
+    position: absolute;
+    inset: 2px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    place-items: center;
+    font-size: 3.1cqw;
+    color: var(--pencil);
+}
+
+.controls {
+    display: grid;
+    gap: 12px;
+}
+
+.pad {
+    display: grid;
+    grid-template-columns: repeat(9, 1fr);
+    gap: 6px;
+}
+
+.tools {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+}
+
+/* Hand-drawn looking buttons */
+.btn {
+    min-height: 56px;
+    padding: 6px 10px;
+    font-size: 24px;
+    background: var(--btn);
+    border: 2px solid var(--line-bold);
+    border-radius: 255px 14px 225px 14px / 14px 225px 14px 255px;
+}
+
+.btn.small {
+    min-height: 48px;
+    font-size: 22px;
+    padding: 4px 14px;
+}
+
+.btn.digit {
+    font-size: clamp(30px, calc(var(--board) / 15), 52px);
+    min-height: clamp(56px, calc(var(--board) / 10), 84px);
+    padding: 0;
+    color: var(--pen);
+}
+
+.btn.digit.pencil {
+    color: var(--pencil);
+    border-style: dashed;
+}
+
+.btn[aria-pressed="true"] {
+    background: var(--sel);
+}
+
+/* ---------- Landscape tablet: board left, controls right ---------- */
+
+@media (orientation: landscape) and (min-width: 700px) {
+    .app {
+        --board: min(100dvh - 120px, 100vw - 32px - 336px, 860px);
+        grid-template-columns: var(--board) 320px;
+        grid-template-areas:
+            "top top"
+            "board controls";
+        align-items: start;
+    }
+
+    .top {
+        grid-area: top;
+    }
+
+    .board {
+        grid-area: board;
+    }
+
+    .controls {
+        grid-area: controls;
+        align-self: center;
+        gap: 20px;
+    }
+
+    .pad {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+    }
+
+    .btn.digit {
+        aspect-ratio: 1;
+        font-size: 52px;
+    }
+
+    .tools {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* ---------- Dialogs ---------- */
+
+.overlay {
+    position: fixed;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 16px;
+    background: var(--shadow);
+}
+
+.dialog {
+    width: min(100%, 440px);
+    display: grid;
+    gap: 14px;
+    padding: 28px 24px;
+    text-align: center;
+    background: var(--paper);
+    border: 2px solid var(--line-bold);
+    border-radius: 18px 6px 22px 8px / 8px 22px 6px 18px;
+}
+
+.dialog h2 {
+    font-size: 36px;
+}
+
+.dialog p {
+    margin: 0;
+    font-size: 26px;
+}
+
+.dialog .warn {
+    color: var(--bad);
+    font-size: 22px;
+}
+
+.dialog .record {
+    color: var(--pen);
+    font-size: 30px;
+}
+
+.btn.big {
+    display: grid;
+    align-content: center;
+    min-height: 72px;
+    font-size: 32px;
+}
+
+.btn.big small {
+    font-size: 20px;
+    color: var(--pencil);
+}
