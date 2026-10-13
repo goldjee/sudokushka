@@ -107,6 +107,16 @@ export function erase(g: Game, cells: number[]): Game {
     return commit(g, { values, notes });
 }
 
+// Clears every player digit and note; revealed hints stay since they are locked. Undoable.
+export function reset(g: Game): Game {
+    if (g.solved || (!g.values.some(Boolean) && !g.notes.some(Boolean)))
+        return g;
+    return commit(g, {
+        values: new Array(81).fill(0),
+        notes: new Array(81).fill(0),
+    });
+}
+
 export function undo(g: Game): Game {
     const last = g.history.at(-1);
     if (!last || g.solved) return g;

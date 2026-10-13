@@ -5,6 +5,7 @@ import {
     type Game,
     placeDigit,
     recordFor,
+    reset,
     revealHint,
     toggleNote,
     undo,
@@ -67,4 +68,17 @@ test('filling the solution solves the game and sets a record', () => {
     const records = recordFor({}, done);
     expect(records?.medium).toEqual({ ms: 5000, hints: 0 });
     expect(recordFor(records ?? {}, { ...done, elapsed: 6000 })).toBeNull();
+});
+
+test('reset clears player digits and notes but keeps hints, undo restores', () => {
+    const g0 = createGame('easy');
+    const [a, b] = g0.givens.flatMap((v, i) => (v ? [] : [i]));
+    const g1 = toggleNote(placeDigit(g0, [a], 3), [b], 7);
+    const hint = revealHint(g1, null);
+    if (!hint) throw new Error('hint expected');
+    const g2 = reset(hint.game);
+    expect(g2.values.some(Boolean) || g2.notes.some(Boolean)).toBe(false);
+    expect(g2.givens).toEqual(hint.game.givens);
+    expect(undo(g2)).toEqual(hint.game);
+    expect(reset(g2)).toBe(g2);
 });

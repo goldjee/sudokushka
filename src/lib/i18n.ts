@@ -15,6 +15,8 @@ export type Strings = Record<Difficulty, string> & {
     newRecord: string;
     undo: string;
     erase: string;
+    reset: string;
+    resetConfirm: string;
     pencil: string;
     hint: string;
     darkTheme: string;
@@ -39,6 +41,8 @@ export const T: Record<Lang, Strings> = {
         newRecord: 'Новый рекорд!',
         undo: 'Отменить',
         erase: 'Стереть',
+        reset: 'Сбросить доску',
+        resetConfirm: 'Стереть все свои цифры и заметки карандашом?',
         pencil: 'Карандаш',
         hint: 'Подсказка',
         darkTheme: 'Тёмная тема',
@@ -61,6 +65,8 @@ export const T: Record<Lang, Strings> = {
         newRecord: 'New record!',
         undo: 'Undo',
         erase: 'Erase',
+        reset: 'Reset board',
+        resetConfirm: 'Erase all your digits and pencil notes?',
         pencil: 'Pencil',
         hint: 'Hint',
         darkTheme: 'Dark theme',

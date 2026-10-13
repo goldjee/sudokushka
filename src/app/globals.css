@@ -194,6 +194,7 @@ h2 {
 }
 
 .controls {
+    container: controls / inline-size;
     display: grid;
     gap: 12px;
 }
@@ -206,8 +207,15 @@ h2 {
 
 .tools {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 8px;
+}
+
+/* Four labelled buttons need ~590px; narrower boards (and the landscape column) get two per row */
+@container controls (width < 600px) {
+    .tools {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
 }
 
 /* Hand-drawn looking buttons */
@@ -236,6 +244,18 @@ h2 {
     stroke-width: 2;
     stroke-linecap: round;
     stroke-linejoin: round;
+}
+
+.tools .btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding-inline: 6px;
+}
+
+.btn.wide {
+    grid-column: 1 / -1;
 }
 
 .btn.digit {
@@ -288,10 +308,6 @@ h2 {
     .btn.digit {
         aspect-ratio: 1;
         font-size: 52px;
-    }
-
-    .tools {
-        grid-template-columns: repeat(2, 1fr);
     }
 }
 

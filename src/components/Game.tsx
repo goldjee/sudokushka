@@ -10,6 +10,7 @@ import {
     placeDigit,
     type Records,
     recordFor,
+    reset,
     revealHint,
     toggleNote,
     undo,
@@ -19,7 +20,7 @@ import { KEY, load, save } from '@/lib/storage';
 import type { Difficulty } from '@/lib/sudoku';
 import { Board } from './Board';
 import { Controls } from './Controls';
-import { NewGameDialog, WinDialog } from './Dialogs';
+import { NewGameDialog, ResetDialog, WinDialog } from './Dialogs';
 import { Header, type Theme } from './Header';
 
 export default function Game() {
@@ -31,6 +32,7 @@ export default function Game() {
     const [selected, setSelected] = useState<number[]>([]);
     const [pencil, setPencil] = useState(false);
     const [menu, setMenu] = useState(false);
+    const [confirmReset, setConfirmReset] = useState(false);
     const [newRecord, setNewRecord] = useState(false);
     const onKey = useRef((_: KeyboardEvent) => {});
 
@@ -147,7 +149,7 @@ export default function Game() {
     const onErase = () => game && play(erase(game, selected));
 
     onKey.current = (e) => {
-        if (menu || e.ctrlKey || e.metaKey || e.altKey) return;
+        if (menu || confirmReset || e.ctrlKey || e.metaKey || e.altKey) return;
         // e.code, not e.key: Shift held from multi-select turns 1 into '!'.
         const digit = /^(?:Digit|Numpad)([1-9])$/.exec(e.code)?.[1];
         if (digit) onDigit(Number(digit));
@@ -188,10 +190,21 @@ export default function Game() {
                 onDigit={onDigit}
                 onUndo={() => play(undo(game))}
                 onErase={onErase}
+                onReset={() => setConfirmReset(true)}
                 onTogglePencil={() => setPencil(!pencil)}
                 onHint={onHint}
             />
             {menu && newGameDialog}
+            {confirmReset && (
+                <ResetDialog
+                    t={t}
+                    onConfirm={() => {
+                        play(reset(game));
+                        setConfirmReset(false);
+                    }}
+                    onCancel={() => setConfirmReset(false)}
+                />
+            )}
             {game.solved && !menu && (
                 <WinDialog
                     t={t}

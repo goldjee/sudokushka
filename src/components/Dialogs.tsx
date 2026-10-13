@@ -95,3 +95,23 @@ export function WinDialog({
         </Dialog>
     );
 }
+
+type ConfirmProps = {
+    t: Strings;
+    onConfirm: () => void;
+    onCancel: () => void;
+};
+
+export function ResetDialog({ t, onConfirm, onCancel }: ConfirmProps) {
+    return (
+        <Dialog title={t.reset}>
+            <p className='warn'>{t.resetConfirm}</p>
+            <button type='button' className='btn big' onClick={onConfirm}>
+                {t.reset}
+            </button>
+            <button type='button' className='btn' onClick={onCancel}>
+                {t.cancel}
+            </button>
+        </Dialog>
+    );
+}
