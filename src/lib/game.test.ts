@@ -17,9 +17,9 @@ test('placing a digit clears that note from peers, undo restores it', () => {
     const g0 = createGame('easy');
     const cell = firstOpen(g0);
     const peer = PEERS[cell].find((j) => !g0.givens[j]) ?? -1;
-    const g1 = toggleNote(g0, peer, 4);
+    const g1 = toggleNote(g0, [peer], 4);
     expect(g1.notes[peer]).toBe(1 << 4);
-    const g2 = placeDigit(g1, cell, 4);
+    const g2 = placeDigit(g1, [cell], 4);
     expect(g2.values[cell]).toBe(4);
     expect(g2.notes[peer]).toBe(0);
     expect(undo(g2).notes[peer]).toBe(1 << 4);
@@ -28,9 +28,19 @@ test('placing a digit clears that note from peers, undo restores it', () => {
 test('given cells and no-op moves leave the game untouched', () => {
     const g = createGame('easy');
     const given = g.givens.findIndex(Boolean);
-    expect(placeDigit(g, given, 1)).toBe(g);
-    expect(erase(g, firstOpen(g))).toBe(g);
+    expect(placeDigit(g, [given], 1)).toBe(g);
+    expect(erase(g, [firstOpen(g)])).toBe(g);
     expect(undo(g)).toBe(g);
+});
+
+test('notes on several cells: added to all unless all have it, one undo step', () => {
+    const g0 = createGame('easy');
+    const [a, b] = g0.givens.flatMap((v, i) => (v ? [] : [i]));
+    const g1 = toggleNote(g0, [a], 5);
+    const g2 = toggleNote(g1, [a, b], 5);
+    expect([g2.notes[a], g2.notes[b]]).toEqual([1 << 5, 1 << 5]);
+    expect(toggleNote(g2, [a, b], 5).notes[b]).toBe(0);
+    expect(undo(g2)).toEqual(g1);
 });
 
 test('hint cooldown starts at 60s and grows 1.5x', () => {
@@ -50,7 +60,7 @@ test('hint cooldown starts at 60s and grows 1.5x', () => {
 test('filling the solution solves the game and sets a record', () => {
     let g = createGame('medium');
     g.solution.forEach((d, i) => {
-        g = placeDigit(g, i, d);
+        g = placeDigit(g, [i], d);
     });
     expect(g.solved).toBe(true);
     const done = { ...g, elapsed: 5000 };

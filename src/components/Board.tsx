@@ -6,13 +6,14 @@ type Props = {
     cells: number[];
     givens: number[];
     notes: number[];
-    selected: number | null;
-    onSelect: (cell: number) => void;
+    selected: number[];
+    onSelect: (cell: number, add: boolean) => void;
 };
 
 export function Board({ cells, givens, notes, selected, onSelect }: Props) {
     const bad = conflicts(cells);
-    const selectedValue = selected === null ? 0 : cells[selected];
+    const primary = selected.at(-1);
+    const selectedValue = primary === undefined ? 0 : cells[primary];
 
     return (
         <div className='board'>
@@ -25,9 +26,9 @@ export function Board({ cells, givens, notes, selected, onSelect }: Props) {
                     givens[i] ? 'given' : 'pen',
                     col === 2 || col === 5 ? 'br' : '',
                     row === 2 || row === 5 ? 'bb' : '',
-                    selected !== null && sameUnit(selected, i) ? 'area' : '',
+                    primary !== undefined && sameUnit(primary, i) ? 'area' : '',
                     selectedValue && value === selectedValue ? 'same' : '',
-                    i === selected ? 'sel' : '',
+                    selected.includes(i) ? 'sel' : '',
                     bad[i] ? 'bad' : '',
                 ].join(' ');
                 return (
@@ -36,7 +37,7 @@ export function Board({ cells, givens, notes, selected, onSelect }: Props) {
                         key={i}
                         className={className}
                         aria-label={`${row + 1}-${col + 1}${value ? `: ${value}` : ''}`}
-                        onClick={() => onSelect(i)}
+                        onClick={(e) => onSelect(i, e.shiftKey)}
                     >
                         {value || (notes[i] > 0 && <Notes mask={notes[i]} />)}
                     </button>

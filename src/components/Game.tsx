@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
     boardCells,
     createGame,
@@ -28,10 +28,11 @@ export default function Game() {
     const [records, setRecords] = useState<Records>({});
     const [lang, setLang] = useState<Lang>('ru');
     const [theme, setTheme] = useState<Theme>('light');
-    const [selected, setSelected] = useState<number | null>(null);
+    const [selected, setSelected] = useState<number[]>([]);
     const [pencil, setPencil] = useState(false);
     const [menu, setMenu] = useState(false);
     const [newRecord, setNewRecord] = useState(false);
+    const onKey = useRef((_: KeyboardEvent) => {});
 
     useEffect(() => {
         const saved = load<GameState>(KEY.game);
@@ -44,6 +45,12 @@ export default function Game() {
         );
         setTheme(load<Theme>(KEY.theme) ?? 'light');
         setReady(true);
+    }, []);
+
+    useEffect(() => {
+        const listener = (e: KeyboardEvent) => onKey.current(e);
+        document.addEventListener('keydown', listener);
+        return () => document.removeEventListener('keydown', listener);
     }, []);
 
     useEffect(() => {
@@ -83,7 +90,7 @@ export default function Game() {
 
     function startGame(difficulty: Difficulty) {
         setGame(createGame(difficulty));
-        setSelected(null);
+        setSelected([]);
         setPencil(false);
         setNewRecord(false);
         setMenu(false);
@@ -110,13 +117,13 @@ export default function Game() {
                 save(KEY.records, updated);
             }
             setNewRecord(updated !== null);
-            setSelected(null);
+            setSelected([]);
         }
         setGame(next);
     }
 
     function onDigit(digit: number) {
-        if (!game || selected === null) return;
+        if (!game) return;
         play(
             pencil
                 ? toggleNote(game, selected, digit)
@@ -125,11 +132,28 @@ export default function Game() {
     }
 
     function onHint() {
-        const hint = game && revealHint(game, selected);
+        const hint = game && revealHint(game, selected.at(-1) ?? null);
         if (!hint) return;
-        setSelected(hint.cell);
+        setSelected([hint.cell]);
         play(hint.game);
     }
+
+    function onSelect(cell: number, add: boolean) {
+        if (!add) setSelected([cell]);
+        else if (selected.includes(cell))
+            setSelected(selected.filter((c) => c !== cell));
+        else setSelected([...selected, cell]);
+    }
+
+    const onErase = () => game && play(erase(game, selected));
+
+    onKey.current = (e) => {
+        if (menu || e.ctrlKey || e.metaKey || e.altKey) return;
+        // e.code, not e.key: Shift held from multi-select turns 1 into '!'.
+        const digit = /^(?:Digit|Numpad)([1-9])$/.exec(e.code)?.[1];
+        if (digit) onDigit(Number(digit));
+        else if (e.key === 'Backspace' || e.key === 'Delete') onErase();
+    };
 
     const cells = boardCells(game);
 
@@ -151,7 +175,7 @@ export default function Game() {
                 givens={game.givens}
                 notes={game.notes}
                 selected={selected}
-                onSelect={setSelected}
+                onSelect={onSelect}
             />
             <Controls
                 t={t}
@@ -161,7 +185,7 @@ export default function Game() {
                 hintWait={hintWait(game)}
                 onDigit={onDigit}
                 onUndo={() => play(undo(game))}
-                onErase={() => selected !== null && play(erase(game, selected))}
+                onErase={onErase}
                 onTogglePencil={() => setPencil(!pencil)}
                 onHint={onHint}
             />
