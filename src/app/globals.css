@@ -3,13 +3,13 @@
     --paper: #f6f1e3;
     --squares: #dde4ec;
     --ink: #2b2a27;
-    --pen: #2a4f9e;
-    --pencil: #6c6860;
+    --pen: #1565d8;
+    --pencil: #514d46;
     --line: #b5ad9c;
     --line-bold: #3a3935;
-    --area: rgba(250, 215, 110, 0.22);
-    --same: rgba(110, 150, 225, 0.22);
-    --sel: rgba(250, 200, 60, 0.5);
+    --area: rgba(250, 210, 100, 0.4);
+    --same: rgba(90, 140, 230, 0.35);
+    --sel: rgba(245, 170, 30, 0.75);
     --bad: #b8382b;
     --bad-bg: rgba(184, 56, 43, 0.13);
     --btn: #fffcf3;
@@ -21,13 +21,13 @@
     --paper: #2b2c2f;
     --squares: #34363a;
     --ink: #d6d1c5;
-    --pen: #93b2e6;
-    --pencil: #9a968d;
+    --pen: #6faaff;
+    --pencil: #b8b3a8;
     --line: #55575c;
     --line-bold: #a19d93;
-    --area: rgba(250, 210, 110, 0.07);
-    --same: rgba(120, 160, 230, 0.16);
-    --sel: rgba(250, 200, 80, 0.22);
+    --area: rgba(250, 210, 110, 0.15);
+    --same: rgba(110, 160, 245, 0.3);
+    --sel: rgba(250, 190, 60, 0.45);
     --bad: #e07c70;
     --bad-bg: rgba(224, 124, 112, 0.14);
     --btn: #333438;
@@ -189,7 +189,7 @@ h2 {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     place-items: center;
-    font-size: 3.1cqw;
+    font-size: 3.5cqw;
     color: var(--pencil);
 }
 
