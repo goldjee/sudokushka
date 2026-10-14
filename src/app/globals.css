@@ -69,6 +69,15 @@ button {
     touch-action: manipulation; /* no double-tap zoom on iPad */
 }
 
+/* Neucha's ascent is much taller than its descent, so centred text sits high; centre on the glyphs instead.
+   Not inherited, so text inside flex/grid items needs its own element (a <span>). */
+.cell,
+.notes > span,
+.btn,
+.btn > * {
+    text-box: trim-both cap alphabetic;
+}
+
 button:disabled {
     cursor: default;
     opacity: 0.35;
@@ -137,8 +146,6 @@ h2 {
 
 .cell {
     position: relative;
-    display: grid;
-    place-items: center;
     border-right: 1px solid var(--line);
     border-bottom: 1px solid var(--line);
     font-size: 8cqw;
@@ -360,8 +367,21 @@ h2 {
 }
 
 .btn.digit.pencil {
+    position: relative;
+    isolation: isolate;
     color: var(--pencil);
-    border-style: dashed;
+}
+
+/* Faint hand-drawn hatching: straight lines with a slight hand jitter, as a mask (the jitter repeats along the tile diagonal, so lines join across tiles), so the colour follows the theme and the button's own background stays free for hover */
+.btn.digit.pencil::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: var(--pencil);
+    opacity: 0.18;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cdefs%3E%3Cpath id='h' d='M-80 160 -69.6 150.4 -59.9 140.1 -50.4 129.6 -40.1 119.9 -29.7 110.3 -20.2 99.8 -9.6 90.4 0 80 10.4 70.4 20.1 60.1 29.6 49.6 39.9 39.9 50.3 30.3 59.8 19.8 70.4 10.4 80 0 90.4 -9.6 100.1 -19.9 109.6 -30.4 119.9 -40.1 130.3 -49.7 139.8 -60.2 150.4 -69.6 160 -80'/%3E%3C/defs%3E%3Cuse href='%23h' x='-80' y='0'/%3E%3Cuse href='%23h' x='0' y='0'/%3E%3Cuse href='%23h' x='-67' y='-3'/%3E%3Cuse href='%23h' x='13' y='-3'/%3E%3Cuse href='%23h' x='-53' y='-7'/%3E%3Cuse href='%23h' x='27' y='-7'/%3E%3Cuse href='%23h' x='-49' y='-1'/%3E%3Cuse href='%23h' x='31' y='-1'/%3E%3Cuse href='%23h' x='-31' y='-9'/%3E%3Cuse href='%23h' x='49' y='-9'/%3E%3Cuse href='%23h' x='-26' y='-4'/%3E%3Cuse href='%23h' x='54' y='-4'/%3E%3Cuse href='%23h' x='-14' y='-6'/%3E%3Cuse href='%23h' x='66' y='-6'/%3E%3Cuse href='%23h' x='-8' y='-2'/%3E%3Cuse href='%23h' x='72' y='-2'/%3E%3C/svg%3E");
 }
 
 .btn[aria-pressed="true"] {
@@ -413,12 +433,13 @@ h2 {
     inset: 0;
     display: grid;
     place-items: center;
-    padding: 16px;
+    padding: 32px; /* room for the close button sticking out of the corner */
     background: var(--shadow);
     animation: fade-in 0.2s linear;
 }
 
 .dialog {
+    position: relative;
     width: min(100%, 440px);
     display: grid;
     gap: 14px;
@@ -473,13 +494,31 @@ h2 {
 }
 
 .btn.big {
-    display: grid;
-    align-content: center;
     min-height: 72px;
     font-size: 32px;
 }
 
+.btn.cancel {
+    margin-top: 14px;
+}
+
+/* Circle centred on the dialog's top-right corner; `translate` so the pressed `transform` still applies */
+.btn.close {
+    position: absolute;
+    top: -2px; /* the dialog's border */
+    right: -2px;
+    translate: 50% -50%;
+    display: grid;
+    place-items: center;
+    width: 56px;
+    height: 56px;
+    min-height: 0;
+    padding: 0;
+    border-radius: 50%;
+}
+
 .btn.big small {
+    display: block;
     font-size: 20px;
     color: var(--pencil);
 }

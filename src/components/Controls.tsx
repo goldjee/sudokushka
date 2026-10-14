@@ -72,7 +72,7 @@ export function Controls({
                     onClick={onTogglePencil}
                 >
                     <Icon d={ICONS.pencil} />
-                    {t.pencil}
+                    <span>{t.pencil}</span>
                 </button>
             </div>
             <div className='tools'>
@@ -83,15 +83,15 @@ export function Controls({
                     disabled={!canUndo}
                 >
                     <Icon d={ICONS.undo} />
-                    {t.undo}
+                    <span>{t.undo}</span>
                 </button>
                 <button type='button' className='btn' onClick={onErase}>
                     <Icon d={ICONS.erase} />
-                    {t.erase}
+                    <span>{t.erase}</span>
                 </button>
                 <button type='button' className='btn' onClick={onReset}>
                     <Icon d={ICONS.reset} />
-                    {t.reset}
+                    <span>{t.reset}</span>
                 </button>
             </div>
             <div className='tools'>
@@ -104,7 +104,9 @@ export function Controls({
                 >
                     <Icon d={ICONS.hint} />
                     {/* Time replaces the label so the button never wraps and shifts the layout */}
-                    {hintWait > 0 ? formatTime(hintWait + 999) : t.hint}
+                    <span>
+                        {hintWait > 0 ? formatTime(hintWait + 999) : t.hint}
+                    </span>
                 </button>
                 <button
                     type='button'
@@ -114,7 +116,9 @@ export function Controls({
                     disabled={checkWait > 0}
                 >
                     <Icon d={ICONS.check} />
-                    {checkWait > 0 ? formatTime(checkWait + 999) : t.check}
+                    <span>
+                        {checkWait > 0 ? formatTime(checkWait + 999) : t.check}
+                    </span>
                 </button>
             </div>
         </div>

@@ -4,10 +4,16 @@ import type { Records } from '@/lib/game';
 import type { Strings } from '@/lib/i18n';
 import { DIFFICULTIES, type Difficulty } from '@/lib/sudoku';
 
-type DialogProps = { open: boolean; title: string; children: ReactNode };
+type DialogProps = {
+    open: boolean;
+    title: string;
+    closeLabel?: string;
+    onClose?: () => void; // shows a close button in the corner
+    children: ReactNode;
+};
 
 // Stays mounted after `open` turns false until the closing animation ends.
-function Dialog({ open, title, children }: DialogProps) {
+function Dialog({ open, title, closeLabel, onClose, children }: DialogProps) {
     const titleId = useId();
     const [shown, setShown] = useState(open);
     if (open && !shown) setShown(true);
@@ -28,6 +34,22 @@ function Dialog({ open, title, children }: DialogProps) {
             <div className='dialog'>
                 <h2 id={titleId}>{title}</h2>
                 {content.current}
+                {onClose && (
+                    <button
+                        type='button'
+                        className='btn close'
+                        aria-label={closeLabel}
+                        onClick={onClose}
+                    >
+                        <svg
+                            className='icon'
+                            viewBox='0 0 24 24'
+                            aria-hidden='true'
+                        >
+                            <path d='M6 6l12 12M18 6L6 18' />
+                        </svg>
+                    </button>
+                )}
             </div>
         </div>
     );
@@ -39,7 +61,7 @@ type NewGameProps = {
     records: Records;
     warnLoss: boolean;
     onPick: (difficulty: Difficulty) => void;
-    onCancel?: () => void; // no cancel when there is no game to return to
+    onCancel?: () => void; // no close button when there is no game to return to
 };
 
 export function NewGameDialog({
@@ -51,7 +73,12 @@ export function NewGameDialog({
     onCancel,
 }: NewGameProps) {
     return (
-        <Dialog open={open} title={t.chooseLevel}>
+        <Dialog
+            open={open}
+            title={t.chooseLevel}
+            closeLabel={t.cancel}
+            onClose={onCancel}
+        >
             {warnLoss && <p className='warn'>{t.loseWarning}</p>}
             {DIFFICULTIES.map((d) => {
                 const record = records[d];
@@ -72,11 +99,6 @@ export function NewGameDialog({
                     </button>
                 );
             })}
-            {onCancel && (
-                <button type='button' className='btn' onClick={onCancel}>
-                    {t.cancel}
-                </button>
-            )}
         </Dialog>
     );
 }
@@ -121,12 +143,17 @@ type ConfirmProps = {
 
 export function ResetDialog({ open, t, onConfirm, onCancel }: ConfirmProps) {
     return (
-        <Dialog open={open} title={t.reset}>
+        <Dialog
+            open={open}
+            title={t.reset}
+            closeLabel={t.cancel}
+            onClose={onCancel}
+        >
             <p className='warn'>{t.resetConfirm}</p>
             <button type='button' className='btn big' onClick={onConfirm}>
                 {t.reset}
             </button>
-            <button type='button' className='btn' onClick={onCancel}>
+            <button type='button' className='btn big cancel' onClick={onCancel}>
                 {t.cancel}
             </button>
         </Dialog>
