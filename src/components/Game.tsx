@@ -99,6 +99,9 @@ export default function Game() {
 
     const newGameDialog = (
         <NewGameDialog
+            // Same key in both branches, so the first game's dialog survives into the full layout and animates out
+            key='new-game'
+            open={menu}
             t={t}
             records={records}
             warnLoss={!!game && !game.solved && game.history.length > 0}
@@ -107,7 +110,7 @@ export default function Game() {
         />
     );
 
-    if (!game) return menu && newGameDialog;
+    if (!game) return <main className='app'>{newGameDialog}</main>;
 
     function play(next: GameState) {
         if (next === game) return;
@@ -175,6 +178,7 @@ export default function Game() {
                 onNewGame={() => setMenu(true)}
             />
             <Board
+                key={game.solution.join('')}
                 cells={cells}
                 givens={game.givens}
                 notes={game.notes}
@@ -194,26 +198,24 @@ export default function Game() {
                 onTogglePencil={() => setPencil(!pencil)}
                 onHint={onHint}
             />
-            {menu && newGameDialog}
-            {confirmReset && (
-                <ResetDialog
-                    t={t}
-                    onConfirm={() => {
-                        play(reset(game));
-                        setConfirmReset(false);
-                    }}
-                    onCancel={() => setConfirmReset(false)}
-                />
-            )}
-            {game.solved && !menu && (
-                <WinDialog
-                    t={t}
-                    elapsed={game.elapsed}
-                    hints={game.hints}
-                    newRecord={newRecord}
-                    onNewGame={() => setMenu(true)}
-                />
-            )}
+            {newGameDialog}
+            <ResetDialog
+                open={confirmReset}
+                t={t}
+                onConfirm={() => {
+                    play(reset(game));
+                    setConfirmReset(false);
+                }}
+                onCancel={() => setConfirmReset(false)}
+            />
+            <WinDialog
+                open={game.solved && !menu}
+                t={t}
+                elapsed={game.elapsed}
+                hints={game.hints}
+                newRecord={newRecord}
+                onNewGame={() => setMenu(true)}
+            />
         </main>
     );
 }

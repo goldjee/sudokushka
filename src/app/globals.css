@@ -14,6 +14,7 @@
     --bad-bg: rgba(184, 56, 43, 0.13);
     --btn: #fffcf3;
     --shadow: rgba(0, 0, 0, 0.35);
+    --hover: rgba(0, 0, 0, 0.06);
 }
 
 /* Dark: medium contrast, warm grey "night paper" */
@@ -32,6 +33,7 @@
     --bad-bg: rgba(224, 124, 112, 0.14);
     --btn: #333438;
     --shadow: rgba(0, 0, 0, 0.55);
+    --hover: rgba(255, 255, 255, 0.07);
 }
 
 * {
@@ -70,6 +72,7 @@ button {
 button:disabled {
     cursor: default;
     opacity: 0.35;
+    box-shadow: none;
 }
 
 h1,
@@ -193,6 +196,59 @@ h2 {
     color: var(--pencil);
 }
 
+/* Snapshot of just-erased content, wiped out by a zigzag brush stroke drawn into its mask */
+.erased {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    fill: currentColor;
+    animation: erase-rest 0.5s var(--delay) both;
+}
+
+.erased text {
+    text-anchor: middle;
+    dominant-baseline: central;
+}
+
+.erased .ghost-notes {
+    fill: var(--pencil);
+}
+
+.erased.bad {
+    fill: var(--bad);
+}
+
+.erased path {
+    fill: none;
+    stroke: black;
+    stroke-width: 15;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 1;
+    animation: erase-stroke 0.4s ease-in-out var(--delay) both;
+}
+
+@keyframes erase-stroke {
+    from {
+        stroke-dashoffset: 1;
+    }
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+/* Crumbs the brush missed fade away at the end */
+@keyframes erase-rest {
+    75% {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
 .controls {
     container: controls / inline-size;
     display: grid;
@@ -226,6 +282,25 @@ h2 {
     background: var(--btn);
     border: 2px solid var(--line-bold);
     border-radius: 255px 14px 225px 14px / 14px 225px 14px 255px;
+    /* Raised at rest; pressing pushes it down onto its shadow */
+    box-shadow: 2px 3px 0 var(--line-bold);
+    transition:
+        transform 0.08s,
+        box-shadow 0.08s,
+        background-color 0.15s;
+}
+
+/* Hover only tints (never moves), and only on real pointers so iPad taps don't stick */
+@media (hover: hover) {
+    .btn:hover:not(:disabled) {
+        background-image: linear-gradient(var(--hover), var(--hover));
+    }
+}
+
+.btn:active:not(:disabled),
+.btn[aria-pressed="true"] {
+    transform: translate(2px, 3px);
+    box-shadow: 0 0 0 var(--line-bold);
 }
 
 .btn.small {
@@ -320,6 +395,7 @@ h2 {
     place-items: center;
     padding: 16px;
     background: var(--shadow);
+    animation: fade-in 0.2s linear;
 }
 
 .dialog {
@@ -331,6 +407,30 @@ h2 {
     background: var(--paper);
     border: 2px solid var(--line-bold);
     border-radius: 18px 6px 22px 8px / 8px 22px 6px 18px;
+    animation: pop-in 0.25s cubic-bezier(0.3, 1.4, 0.5, 1);
+}
+
+.overlay.closing {
+    pointer-events: none;
+    animation: fade-out 0.2s linear both;
+}
+
+.closing .dialog {
+    animation: pop-out 0.2s ease-in both;
+}
+
+/* Background only (the dialog fades itself): when one dialog replaces another, the two linear fades sum to an almost constant shade */
+@keyframes fade-in {
+    from {
+        background-color: transparent;
+    }
+}
+
+@keyframes pop-in {
+    from {
+        opacity: 0;
+        transform: translateY(16px) scale(0.94) rotate(-1deg);
+    }
 }
 
 .dialog h2 {
@@ -362,4 +462,28 @@ h2 {
 .btn.big small {
     font-size: 20px;
     color: var(--pencil);
+}
+
+@keyframes fade-out {
+    to {
+        background-color: transparent;
+    }
+}
+
+@keyframes pop-out {
+    to {
+        opacity: 0;
+        transform: translateY(16px) scale(0.94) rotate(-1deg);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        /* near-zero rather than none, so animationend still fires and closing dialogs unmount */
+        animation-duration: 1ms !important;
+        animation-delay: 0s !important;
+        transition-duration: 1ms !important;
+    }
 }

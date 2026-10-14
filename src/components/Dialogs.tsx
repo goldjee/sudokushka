@@ -1,27 +1,40 @@
-import { type ReactNode, useId } from 'react';
+import { type ReactNode, useId, useRef, useState } from 'react';
 import { formatTime } from '@/lib/format';
 import type { Records } from '@/lib/game';
 import type { Strings } from '@/lib/i18n';
 import { DIFFICULTIES, type Difficulty } from '@/lib/sudoku';
 
-function Dialog({ title, children }: { title: string; children: ReactNode }) {
+type DialogProps = { open: boolean; title: string; children: ReactNode };
+
+// Stays mounted after `open` turns false until the closing animation ends.
+function Dialog({ open, title, children }: DialogProps) {
     const titleId = useId();
+    const [shown, setShown] = useState(open);
+    if (open && !shown) setShown(true);
+    // Freeze the content while closing, so it doesn't change under the fade (e.g. the loss warning after a new game).
+    const content = useRef(children);
+    if (open) content.current = children;
+    if (!shown) return null;
     return (
         <div
-            className='overlay'
+            className={`overlay ${open ? '' : 'closing'}`}
             role='dialog'
             aria-modal='true'
             aria-labelledby={titleId}
+            onAnimationEnd={(e) =>
+                !open && e.target === e.currentTarget && setShown(false)
+            }
         >
             <div className='dialog'>
                 <h2 id={titleId}>{title}</h2>
-                {children}
+                {content.current}
             </div>
         </div>
     );
 }
 
 type NewGameProps = {
+    open: boolean;
     t: Strings;
     records: Records;
     warnLoss: boolean;
@@ -30,6 +43,7 @@ type NewGameProps = {
 };
 
 export function NewGameDialog({
+    open,
     t,
     records,
     warnLoss,
@@ -37,7 +51,7 @@ export function NewGameDialog({
     onCancel,
 }: NewGameProps) {
     return (
-        <Dialog title={t.chooseLevel}>
+        <Dialog open={open} title={t.chooseLevel}>
             {warnLoss && <p className='warn'>{t.loseWarning}</p>}
             {DIFFICULTIES.map((d) => {
                 const record = records[d];
@@ -68,6 +82,7 @@ export function NewGameDialog({
 }
 
 type WinProps = {
+    open: boolean;
     t: Strings;
     elapsed: number;
     hints: number;
@@ -76,6 +91,7 @@ type WinProps = {
 };
 
 export function WinDialog({
+    open,
     t,
     elapsed,
     hints,
@@ -83,7 +99,7 @@ export function WinDialog({
     onNewGame,
 }: WinProps) {
     return (
-        <Dialog title={t.solved}>
+        <Dialog open={open} title={t.solved}>
             <p>
                 {t.time}: {formatTime(elapsed)}
                 {hints > 0 && ` (${t.withHints})`}
@@ -97,14 +113,15 @@ export function WinDialog({
 }
 
 type ConfirmProps = {
+    open: boolean;
     t: Strings;
     onConfirm: () => void;
     onCancel: () => void;
 };
 
-export function ResetDialog({ t, onConfirm, onCancel }: ConfirmProps) {
+export function ResetDialog({ open, t, onConfirm, onCancel }: ConfirmProps) {
     return (
-        <Dialog title={t.reset}>
+        <Dialog open={open} title={t.reset}>
             <p className='warn'>{t.resetConfirm}</p>
             <button type='button' className='btn big' onClick={onConfirm}>
                 {t.reset}
