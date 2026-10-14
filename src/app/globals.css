@@ -255,23 +255,18 @@ h2 {
     gap: 12px;
 }
 
+/* Digits and the pencil toggle; the pencil is a double-width key at the end of the row */
 .pad {
     display: grid;
-    grid-template-columns: repeat(9, 1fr);
+    grid-template-columns: repeat(9, minmax(0, 1fr)) minmax(0, 2fr);
     gap: 6px;
 }
 
+/* A row of labelled buttons: equal widths while every label fits, otherwise the last ones wrap to a new line */
 .tools {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    display: flex;
+    flex-wrap: wrap;
     gap: 8px;
-}
-
-/* Four labelled buttons need ~590px; narrower boards (and the landscape column) get two per row */
-@container controls (width < 600px) {
-    .tools {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
 }
 
 /* Hand-drawn looking buttons */
@@ -321,7 +316,8 @@ h2 {
     stroke-linejoin: round;
 }
 
-.tools .btn {
+.tools .btn,
+.pencil-key {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -329,8 +325,31 @@ h2 {
     padding-inline: 6px;
 }
 
-.btn.wide {
-    grid-column: 1 / -1;
+.tools .btn {
+    flex: 1 1 0;
+    min-width: max-content;
+}
+
+/* Icon over a smaller label, so the double-width key holds it */
+.pencil-key {
+    flex-direction: column;
+    gap: 2px;
+    font-size: 20px;
+    line-height: 1;
+}
+
+/* Too narrow for the label in the digit row (and the landscape column): the pencil takes its own row */
+@container controls (width < 550px) {
+    .pad {
+        grid-template-columns: repeat(9, minmax(0, 1fr));
+    }
+
+    .pencil-key {
+        grid-column: 1 / -1;
+        flex-direction: row;
+        gap: 6px;
+        font-size: 24px;
+    }
 }
 
 .btn.digit {
@@ -353,8 +372,8 @@ h2 {
 
 @media (orientation: landscape) and (min-width: 700px) {
     .app {
-        --board: min(100dvh - 120px, 100vw - 32px - 336px, 860px);
-        grid-template-columns: var(--board) 320px;
+        --board: min(100dvh - 120px, 100vw - 32px - 416px, 860px);
+        grid-template-columns: var(--board) 400px;
         grid-template-areas:
             "top top"
             "board controls";
@@ -380,8 +399,9 @@ h2 {
         gap: 10px;
     }
 
+    /* Not square: the column is wide, and three groups must fit next to the board without scrolling */
     .btn.digit {
-        aspect-ratio: 1;
+        min-height: clamp(64px, calc(var(--board) / 7), 100px);
         font-size: 52px;
     }
 }

@@ -3,10 +3,13 @@
 import { useEffect, useRef, useState } from 'react';
 import {
     boardCells,
+    checkMistakes,
+    checkWait,
     createGame,
     erase,
     type Game as GameState,
     hintWait,
+    mistakes,
     placeDigit,
     type Records,
     recordFor,
@@ -14,6 +17,7 @@ import {
     revealHint,
     toggleNote,
     undo,
+    upgrade,
 } from '@/lib/game';
 import { type Lang, T } from '@/lib/i18n';
 import { KEY, load, save } from '@/lib/storage';
@@ -37,7 +41,8 @@ export default function Game() {
     const onKey = useRef((_: KeyboardEvent) => {});
 
     useEffect(() => {
-        const saved = load<GameState>(KEY.game);
+        const stored = load<GameState>(KEY.game);
+        const saved = stored && upgrade(stored);
         setGame(saved);
         setMenu(!saved);
         setRecords(load<Records>(KEY.records) ?? {});
@@ -182,6 +187,7 @@ export default function Game() {
                 cells={cells}
                 givens={game.givens}
                 notes={game.notes}
+                wrong={mistakes(game)}
                 selected={selected}
                 onSelect={onSelect}
             />
@@ -191,12 +197,14 @@ export default function Game() {
                 pencil={pencil}
                 canUndo={game.history.length > 0 && !game.solved}
                 hintWait={hintWait(game)}
+                checkWait={checkWait(game)}
                 onDigit={onDigit}
                 onUndo={() => play(undo(game))}
                 onErase={onErase}
                 onReset={() => setConfirmReset(true)}
                 onTogglePencil={() => setPencil(!pencil)}
                 onHint={onHint}
+                onCheck={() => setGame(checkMistakes(game))}
             />
             {newGameDialog}
             <ResetDialog
@@ -212,7 +220,7 @@ export default function Game() {
                 open={game.solved && !menu}
                 t={t}
                 elapsed={game.elapsed}
-                hints={game.hints}
+                hints={game.hints + game.checks}
                 newRecord={newRecord}
                 onNewGame={() => setMenu(true)}
             />

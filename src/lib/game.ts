@@ -12,6 +12,9 @@ export type Game = Board & {
     elapsed: number; // ms of visible play
     hints: number;
     hintAt: number; // elapsed ms when the next hint unlocks
+    checks: number;
+    checkAt: number; // elapsed ms when the next mistake check unlocks
+    wrong: number[]; // digits a mistake check flagged; shown while the cell still holds them
     solved: boolean;
 };
 
@@ -21,6 +24,7 @@ export type Records = Partial<
 
 const HINT_COOLDOWN = 60_000;
 const HINT_GROWTH = 1.5;
+const CHECK_COOLDOWN = 5 * 60_000;
 const HISTORY_LIMIT = 200;
 
 export function createGame(difficulty: Difficulty): Game {
@@ -35,14 +39,30 @@ export function createGame(difficulty: Difficulty): Game {
         elapsed: 0,
         hints: 0,
         hintAt: 0,
+        checks: 0,
+        checkAt: 0,
+        wrong: new Array(81).fill(0),
         solved: false,
     };
 }
+
+// Fills fields added after a game could have been saved.
+export const upgrade = (g: Game): Game => ({
+    ...g,
+    checks: g.checks ?? 0,
+    checkAt: g.checkAt ?? 0,
+    wrong: g.wrong ?? new Array(81).fill(0),
+});
 
 // The digit shown in each cell, printed or written by the player.
 export const boardCells = (g: Game) => g.givens.map((v, i) => v || g.values[i]);
 
 export const hintWait = (g: Game) => Math.max(0, g.hintAt - g.elapsed);
+export const checkWait = (g: Game) => Math.max(0, g.checkAt - g.elapsed);
+
+// Cells whose current player digit was flagged by the last mistake check.
+export const mistakes = (g: Game) =>
+    g.wrong.map((d, i) => d > 0 && !g.givens[i] && g.values[i] === d);
 
 const editable = (g: Game, cell: number) => !g.solved && !g.givens[cell];
 
@@ -123,7 +143,7 @@ export function undo(g: Game): Game {
     return { ...g, ...last, history: g.history.slice(0, -1) };
 }
 
-// Reveals the preferred cell if it is still open, otherwise a random open one.
+// Reveals the preferred cell if it is still open, otherwise a random empty one (any open one once the board is full).
 export function revealHint(
     g: Game,
     preferred: number | null,
@@ -131,8 +151,10 @@ export function revealHint(
 ): { game: Game; cell: number } | null {
     if (g.solved || hintWait(g) > 0) return null;
     const open = (i: number) => !g.givens[i] && g.values[i] !== g.solution[i];
-    const pool = g.solution.map((_, i) => i).filter(open);
-    if (pool.length === 0) return null;
+    const openCells = g.solution.map((_, i) => i).filter(open);
+    if (openCells.length === 0) return null;
+    const empty = openCells.filter((i) => !g.values[i]);
+    const pool = empty.length > 0 ? empty : openCells;
     const cell =
         preferred !== null && open(preferred)
             ? preferred
@@ -156,9 +178,26 @@ export function revealHint(
     return { game, cell };
 }
 
+// Flags every player digit that differs from the solution. Not a move, so not undoable.
+export function checkMistakes(g: Game): Game {
+    if (g.solved || checkWait(g) > 0) return g;
+    const checks = g.checks + 1;
+    return {
+        ...g,
+        checks,
+        checkAt: g.elapsed + CHECK_COOLDOWN * HINT_GROWTH ** (checks - 1),
+        wrong: g.values.map((v, i) =>
+            !g.givens[i] && v !== g.solution[i] ? v : 0,
+        ),
+    };
+}
+
 // Returns updated records when the solved game beats the best time, else null.
 export function recordFor(records: Records, g: Game): Records | null {
     const best = records[g.difficulty];
     if (best && best.ms <= g.elapsed) return null;
-    return { ...records, [g.difficulty]: { ms: g.elapsed, hints: g.hints } };
+    return {
+        ...records,
+        [g.difficulty]: { ms: g.elapsed, hints: g.hints + g.checks },
+    };
 }

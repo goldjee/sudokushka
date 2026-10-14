@@ -1,8 +1,10 @@
 import { expect, test } from 'bun:test';
 import {
+    checkMistakes,
     createGame,
     erase,
     type Game,
+    mistakes,
     placeDigit,
     recordFor,
     reset,
@@ -81,4 +83,29 @@ test('reset clears player digits and notes but keeps hints, undo restores', () =
     expect(g2.givens).toEqual(hint.game.givens);
     expect(undo(g2)).toEqual(hint.game);
     expect(reset(g2)).toBe(g2);
+});
+
+test('hint prefers empty cells over wrong pen digits', () => {
+    const g0 = createGame('easy');
+    const open = g0.givens.flatMap((v, i) => (v ? [] : [i]));
+    const wrongCell = open[0];
+    const g1 = placeDigit(g0, [wrongCell], (g0.solution[wrongCell] % 9) + 1);
+    for (let k = 0; k < 20; k++)
+        expect(revealHint(g1, null, Math.random)?.cell).not.toBe(wrongCell);
+    expect(revealHint(g1, wrongCell)?.cell).toBe(wrongCell);
+});
+
+test('mistake check flags wrong digits until changed, cooldown 5 min then 7.5', () => {
+    const g0 = createGame('easy');
+    const [a, b] = g0.givens.flatMap((v, i) => (v ? [] : [i]));
+    const bad = (g0.solution[a] % 9) + 1;
+    const g1 = placeDigit(placeDigit(g0, [a], bad), [b], g0.solution[b]);
+    const g2 = checkMistakes(g1);
+    expect(mistakes(g2).flatMap((m, i) => (m ? [i] : []))).toEqual([a]);
+    expect(g2.checkAt - g2.elapsed).toBe(5 * 60_000);
+    expect(checkMistakes(g2)).toBe(g2);
+    expect(mistakes(erase(g2, [a]))[a]).toBe(false);
+    expect(mistakes(undo(erase(g2, [a])))[a]).toBe(true);
+    const g3 = checkMistakes({ ...g2, elapsed: g2.checkAt });
+    expect(g3.checkAt - g3.elapsed).toBe(7.5 * 60_000);
 });

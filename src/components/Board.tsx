@@ -7,6 +7,7 @@ type Props = {
     cells: number[];
     givens: number[];
     notes: number[];
+    wrong: boolean[];
     selected: number[];
     onSelect: (cell: number, add: boolean) => void;
 };
@@ -22,7 +23,14 @@ type Ghost = {
 
 const diagonal = (i: number) => (i % 9) + Math.floor(i / 9);
 
-export function Board({ cells, givens, notes, selected, onSelect }: Props) {
+export function Board({
+    cells,
+    givens,
+    notes,
+    wrong,
+    selected,
+    onSelect,
+}: Props) {
     // Erased content leaves the DOM at once, so keep a snapshot to play the erase animation over.
     const [prev, setPrev] = useState({ cells, notes });
     const [ghost, setGhost] = useState<Ghost | null>(null);
@@ -63,7 +71,7 @@ export function Board({ cells, givens, notes, selected, onSelect }: Props) {
                     primary !== undefined && sameUnit(primary, i) ? 'area' : '',
                     selectedValue && value === selectedValue ? 'same' : '',
                     selected.includes(i) ? 'sel' : '',
-                    bad[i] ? 'bad' : '',
+                    bad[i] || wrong[i] ? 'bad' : '',
                 ].join(' ');
                 return (
                     <button
