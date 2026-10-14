@@ -215,8 +215,7 @@ h2 {
 }
 
 .erased text {
-    text-anchor: middle;
-    dominant-baseline: central;
+    text-anchor: middle; /* y is the centre; dy='0.35em' drops the baseline to where the cap-trimmed cell text has it */
 }
 
 .erased .ghost-notes {

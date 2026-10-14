@@ -32,21 +32,25 @@ export function Board({
     onSelect,
 }: Props) {
     // Erased content leaves the DOM at once, so keep a snapshot to play the erase animation over.
-    const [prev, setPrev] = useState({ cells, notes });
+    const [prev, setPrev] = useState({ cells, notes, wrong });
     const [ghost, setGhost] = useState<Ghost | null>(null);
-    // cells is a fresh array on every timer tick, so compare by value
-    if (notes !== prev.notes || cells.some((v, i) => v !== prev.cells[i])) {
+    // cells and wrong are fresh arrays on every timer tick, so compare by value
+    if (
+        notes !== prev.notes ||
+        cells.some((v, i) => v !== prev.cells[i]) ||
+        wrong.some((w, i) => w !== prev.wrong[i])
+    ) {
         const erased = cells.map(
             (v, i) =>
                 !v && !notes[i] && (prev.cells[i] > 0 || prev.notes[i] > 0),
         );
-        setPrev({ cells, notes });
+        setPrev({ cells, notes, wrong });
         if (erased.some(Boolean))
             setGhost({
                 ...prev,
                 id: (ghost?.id ?? 0) + 1,
                 erased,
-                bad: conflicts(prev.cells),
+                bad: conflicts(prev.cells).map((b, i) => b || prev.wrong[i]),
                 first: Math.min(
                     ...CELLS.filter((i) => erased[i]).map(diagonal),
                 ),
@@ -136,7 +140,7 @@ function Erased({ cell, value, mask, bad, delay }: ErasedProps) {
             </mask>
             <g mask={`url(#${id})`}>
                 {value ? (
-                    <text x='50' y='50' fontSize='76'>
+                    <text x='50' y='50' dy='0.35em' fontSize='73'>
                         {value}
                     </text>
                 ) : (
@@ -146,7 +150,8 @@ function Erased({ cell, value, mask, bad, delay }: ErasedProps) {
                                 key={d}
                                 x={18 + ((d - 1) % 3) * 32}
                                 y={18 + Math.floor((d - 1) / 3) * 32}
-                                fontSize='33'
+                                dy='0.35em'
+                                fontSize='32'
                             >
                                 {d}
                             </text>
